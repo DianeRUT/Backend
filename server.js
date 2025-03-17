@@ -1,16 +1,28 @@
 import mongoose from 'mongoose';
+import cors from 'cors';
 import dotenv from "dotenv";
 import express from "express";
 import bodyParser from 'body-parser';
 import mainRouter from './src/routes/indexRouting.js';
+
+// import productRoutes from './routes/products.js';
+// import cartRoutes from './routes/cart.js';
+// import { errorHandler } from './middleware/errorHandler.js';
 
 
 dotenv.config();
 
 const app = express();
 app.use(bodyParser.json());
+
+app.use(cors());
+
 app.use("/", mainRouter)
 
+// app.use('/api/products', productRoutes);
+// app.use('/api/cart', cartRoutes);
+
+// app.use(errorHandler);
 
 const port=process.env.PORT ||3000
 const db_user=process.env.DB_USER;
