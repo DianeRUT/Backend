@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['men', 'women', 'sports'],
+    enum: ['Men', 'Women', 'Sports'],
     required: true,
   },
   type: {
@@ -41,7 +41,7 @@ const productSchema = new mongoose.Schema({
  
   brand: {
     type: String,
-    enum: ['nike', 'jordan', 'versace', 'etc...'],
+    enum: ['Nike', 'Jordan', 'Versace', 'etc...'],
     required: true
   },
   discount: {

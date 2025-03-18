@@ -6,19 +6,19 @@ import {
   getAllProduct, deleteProductById, updateProductById
 } from '../controllers/productController.js';
 
-import { protect, restrictToAdmin } from '../middleware/auth.js';
 import upload from "../Middleware/Multer.js";
+import { admin } from '../middleware/roleIdenrification.js';
+import { auth } from "../middleware/tokenVerification.js";
 
-const productRouter = express();
+const productRouter = express.Router();
 
-// Admin protected routes
-productRouter.use(protect, restrictToAdmin);
-productRouter.post('/addProduct', upload.single('Image'), addProduct);
-productRouter.get("/getAllProduct", getAllProduct)
-productRouter.delete("/:id", deleteProductById); 
-productRouter.put("/:id", updateProductById); 
+
+productRouter.post('/addProduct', auth, admin, upload.single('Image'), addProduct);
+productRouter.delete("/:id", auth, admin, deleteProductById); 
+productRouter.put("/:id", auth, admin, updateProductById); 
 
 // Navbar filtering endpoints
+productRouter.get("/getAllProduct", getAllProduct)
 productRouter.get('/', getFilteredProducts);       // Main filtering endpoint
 productRouter.get('/new', getNewArrivals);         // New arrivals
 productRouter.get('/men/:type?', getFilteredProducts);    // Men's collection
