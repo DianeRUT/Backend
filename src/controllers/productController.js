@@ -40,6 +40,7 @@ res.status(500).json({success: false, message: "server error", error: error.mess
   }
 }
 
+
 export const getFilteredProducts = async (req, res) => {
   try {
     const features = new APIFeatures(Product.find(), req.query)
