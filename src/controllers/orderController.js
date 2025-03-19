@@ -8,6 +8,9 @@ const processOrder = async (userId, orderData) => {
   session.startTransaction();
   
   try {
+    
+    console.log('Creating order for user ID:', userId);  // Log user ID
+
     console.log('Processing order with items:', orderData.items);
     
     // 1. Verify product availability and calculate total
@@ -95,6 +98,13 @@ export const createOrder = async (req, res) => {
 
 export const getOrderHistory = async (req, res) => {
   try {
+
+    console.log("User ID:", req.user?._id); // Log user ID
+
+    if (!req.user?._id) {
+      return res.status(400).json({ message: "User ID is missing" });
+    }
+    
     const orders = await Order.find({ user: req.user._id })
       .sort('-createdAt')
       .populate('items.product');

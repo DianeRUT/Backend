@@ -19,7 +19,7 @@ orderRouter.patch('/:id/status',  auth, admin, validateOrderStatus, updateOrderS
 orderRouter.patch('/:id/payment-status', auth, admin, validatePaymentStatus, updatePaymentStatus);
 orderRouter.delete('/:id/cancel',  auth, admin, cancelOrder);
 
-orderRouter.post('/createOrder', validateOrder, createOrder);
-orderRouter.get('/getOrderHistory', getOrderHistory);
+orderRouter.post('/createOrder', auth, validateOrder, createOrder);
+orderRouter.get('/getOrderHistory', auth, getOrderHistory);
 
 export default orderRouter;
