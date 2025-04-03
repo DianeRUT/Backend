@@ -1,6 +1,6 @@
 import expressAsyncHandler from "express-async-handler"
 import User from "../models/userModel.js"
-import generateToken from "../utils/generateToken.js"
+import generateToken from "../utils/tokenGenerating.js"
 
 // @desc    Auth user & get token
 // @route   POST /api/users/login
@@ -27,8 +27,8 @@ const authUser = expressAsyncHandler(async (req, res) => {
 // @desc    Register a new user
 // @route   POST /api/users
 // @access  Public
-const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body
+const registerUser = expressAsyncHandler(async (req, res) => {
+  const { name, email, password, isAdmin } = req.body
 
   const userExists = await User.findOne({ email })
 
@@ -41,6 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password,
+    isAdmin: isAdmin || false,
   })
 
   if (user) {

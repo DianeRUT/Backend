@@ -5,10 +5,10 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js",
-    "server": "nodemon server.js",
-    "data:import": "node seeder.js",
-    "data:destroy": "node seeder.js -d"
+    "start": "nodemon --exec babel-node server.js",
+    "server": "nodemon --exec babel-node server.js",
+    "data:import": "nodemon --exec babel-nodeseeder.js",
+    "data:destroy": "nodemon --exec babel-node seeder.js -d"
   },
   "keywords": [
     "ecommerce",
@@ -29,6 +29,8 @@
     "mongoose": "^7.0.3"
   },
   "devDependencies": {
+    "@babel/node": "^7.26.0",
+    "@babel/preset-env": "^7.26.9",
     "@babel/preset-react": "^7.26.3",
     "nodemon": "^2.0.22"
   }

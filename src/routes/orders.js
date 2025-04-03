@@ -7,7 +7,7 @@ import {
   getMyOrders,
   getOrders,
 } from "../controllers/orderController.js"
-import { protect, admin } from "../middleware/authMiddleware.js"
+import { protect, admin } from "../middleware/auth.js" 
 
 const OrderRouter = express.Router()
 

@@ -9,7 +9,7 @@ import {
   getUserById,
   updateUser,
 } from "../controllers/userController.js"
-import { protect, admin } from "../middleware/authMiddleware.js"
+import { protect, admin } from "../middleware/auth.js"
 
 const UserRouter = express.Router()
 

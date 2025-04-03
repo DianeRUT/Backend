@@ -245,21 +245,23 @@ const userSchema = mongoose.Schema(
 )
 
 // Method to check if entered password matches the hashed password
-userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password)
+userSchema.methods.matchPassword = function (enteredPassword) {
+  return bcrypt.compare(enteredPassword, this.password)
 }
 
 // Middleware to hash password before saving
 userSchema.pre("save", async function (next) {
+  // Skip hashing if password hasn't been modified
   if (!this.isModified("password")) {
-    next()
+    return next()
   }
 
   const salt = await bcrypt.genSalt(10)
   this.password = await bcrypt.hash(this.password, salt)
+  next() // Proceed with saving the user
 })
 
 const User = mongoose.model("User", userSchema)
 
-export default User
+export default User;
 

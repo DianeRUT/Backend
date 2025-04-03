@@ -30,11 +30,11 @@ app.use(cors());
 // app.use(errorHandler);
 
 // Routes
-app.use("/", ProductRouter)
-app.use("/", UserRouter)
-app.use("/", CartRouter)
-app.use("/", OrderRouter)
-app.use("/", CategoryRouter)
+app.use("/api/products", ProductRouter)
+app.use("/api/users", UserRouter)
+app.use("/api/cart", CartRouter)
+app.use("/api/orders", OrderRouter)
+app.use("/api/categories", CategoryRouter)
 
 
 

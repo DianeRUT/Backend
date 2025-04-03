@@ -1,5 +1,5 @@
 import expressAsyncHandler from "express-async-handler"
-import Category from "../models/categoryModel.js"
+import Category from "../models/Category.js"
 
 // @desc    Fetch all categories
 // @route   GET /api/categories
