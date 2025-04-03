@@ -1,222 +1,105 @@
-import Order from "../models/Order.js";
-import Product from '../models/Product.js';
-import Cart from '../models/Cart.js';
-import mongoose from 'mongoose';
+import expressAsyncHandler from "express-async-handler"
+import Order from "../models/orderModel.js"
 
-const processOrder = async (userId, orderData) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  
-  try {
-    
-    console.log('Creating order for user ID:', userId);  // Log user ID
+// @desc    Create new order
+// @route   POST /api/orders
+// @access  Private
+const addOrderItems = expressAsyncHandler(async (req, res) => {
+  const { orderItems, shippingAddress, paymentMethod, taxPrice, shippingPrice, totalPrice } = req.body
 
-    console.log('Processing order with items:', orderData.items);
-    
-    // 1. Verify product availability and calculate total
-    let totalAmount = 0;
-    const itemsWithDetails = await Promise.all(
-      orderData.items.map(async item => {
-        const product = await Product.findById(item.product).session(session);
-        console.log('Product Document:', product);  // Add this line
-        console.log('Product Sizes:', product?.sizes);
-        // Find the size inventory
-        const sizeInventory = product.sizes.find(s => String(s.size) === String(item.size));
-        if (!sizeInventory || sizeInventory.stock < item.quantity) {
-          throw new Error(`Insufficient stock for ${product.name} size ${item.size}`);
-        }
+  if (orderItems && orderItems.length === 0) {
+    res.status(400)
+    throw new Error("No order items")
+  } else {
+    const order = new Order({
+      orderItems,
+      user: req.user._id,
+      shippingAddress,
+      paymentMethod,
+      taxPrice,
+      shippingPrice,
+      totalPrice,
+    })
 
-        // Update stock
-        sizeInventory.stock -= item.quantity;
-        await product.save({ session });
+    const createdOrder = await order.save()
 
-        return {
-          product: product._id,
-          quantity: item.quantity,
-          size: item.size,
-          color: item.color,
-          priceAtPurchase: product.price
-        };
-      })
-    );
-
-    // Calculate total amount
-    totalAmount = itemsWithDetails.reduce(
-      (sum, item) => sum + (item.priceAtPurchase * item.quantity),
-      0
-    );
-
-    // 2. Create order
-    const order = await Order.create([{
-      user: userId,
-      items: itemsWithDetails,
-      shippingAddress: orderData.shippingAddress,
-      paymentMethod: orderData.paymentMethod,
-      totalAmount,
-      paymentStatus: 'pending'
-    }], { session });
-
-    // 3. Clear user's cart if logged in
-    if (userId) {
-      await Cart.findOneAndUpdate(
-        { user: userId },
-        { $set: { items: [], total: 0 } },
-        { session }
-      );
-    }
-
-    await session.commitTransaction();
-    return order[0];
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    session.endSession();
+    res.status(201).json(createdOrder)
   }
-};
+})
 
-export const createOrder = async (req, res) => {
-  try {
-    const order = await processOrder(req.user?._id, req.body);
-    
-    // Simulate payment success
-    order.paymentStatus = 'completed';
-    order.orderStatus = 'processing';
-    await order.save();
+// @desc    Get order by ID
+// @route   GET /api/orders/:id
+// @access  Private
+const getOrderById = expressAsyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id).populate("user", "name email")
 
-    res.status(201).json({
-      status: 'success',
-      data: order
-    });
-  } catch (err) {
-    res.status(400).json({
-      message: 'Order processing failed',
-      error: err.message
-    });
+  if (order) {
+    res.json(order)
+  } else {
+    res.status(404)
+    throw new Error("Order not found")
   }
-};
+})
 
-export const getOrderHistory = async (req, res) => {
-  try {
+// @desc    Update order to paid
+// @route   PUT /api/orders/:id/pay
+// @access  Private
+const updateOrderToPaid = expressAsyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
 
-    console.log("User ID:", req.user?._id); // Log user ID
-
-    if (!req.user?._id) {
-      return res.status(400).json({ message: "User ID is missing" });
+  if (order) {
+    order.isPaid = true
+    order.paidAt = Date.now()
+    order.paymentResult = {
+      id: req.body.id,
+      status: req.body.status,
+      update_time: req.body.update_time,
+      email_address: req.body.payer.email_address,
     }
-    
-    const orders = await Order.find({ user: req.user._id })
-      .sort('-createdAt')
-      .populate('items.product');
 
-    res.status(200).json({
-      status: 'success',
-      results: orders.length,
-      data: orders
-    });
-  } catch (err) {
-    res.status(400).json({ message: 'Error fetching orders' });
+    const updatedOrder = await order.save()
+
+    res.json(updatedOrder)
+  } else {
+    res.status(404)
+    throw new Error("Order not found")
   }
-};
+})
 
-// Get all orders (admin)
-export const getAllOrders = async (req, res) => {
-    try {
-      const filters = { ...req.query };
-      const excludedFields = ['page', 'sort', 'limit'];
-      excludedFields.forEach(el => delete filters[el]);
-  
-      const orders = await Order.find(filters)
-        .sort('-createdAt')
-        .populate('user', 'email')
-        .populate('items.product');
-  
-      res.status(200).json({
-        status: 'success',
-        results: orders.length,
-        data: orders
-      });
-    } catch (err) {
-      res.status(400).json({ message: 'Error fetching orders' });
-    }
-  };
-  
-  // Update order status (admin)
-  export const updateOrderStatus = async (req, res) => {
-    try {
-      const order = await Order.findByIdAndUpdate(
-        req.params.id,
-        { orderStatus: req.body.status },
-        { new: true, runValidators: true }
-      );
-  
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-  
-      res.status(200).json({
-        status: 'success',
-        data: order
-      });
-    } catch (err) {
-      res.status(400).json({ message: 'Error updating order status' });
-    }
-  };
-  
-  // Update payment status (admin)
-  export const updatePaymentStatus = async (req, res) => {
-    try {
-      const order = await Order.findByIdAndUpdate(
-        req.params.id,
-        { paymentStatus: req.body.status },
-        { new: true, runValidators: true }
-      );
-  
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-  
-      res.status(200).json({
-        status: 'success',
-        data: order
-      });
-    } catch (err) {
-      res.status(400).json({ message: 'Error updating payment status' });
-    }
-  };
-  
-  // Cancel order (admin)
-  export const cancelOrder = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-  
-    try {
-      const order = await Order.findById(req.params.id).session(session);
-      if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
-      }
-  
-      // Restock products
-      await Promise.all(order.items.map(async item => {
-        const product = await Product.findById(item.product).session(session);
-        const size = product.sizes.find(s => s.size === item.size);
-        if (size) size.stock += item.quantity;
-        await product.save({ session });
-      }));
-  
-      // Update order status
-      order.orderStatus = 'cancelled';
-      await order.save({ session });
-  
-      await session.commitTransaction();
-      res.status(200).json({
-        status: 'success',
-        data: order
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      res.status(400).json({ message: 'Error cancelling order' });
-    } finally {
-      session.endSession();
-    }
-  };
+// @desc    Update order to delivered
+// @route   PUT /api/orders/:id/deliver
+// @access  Private/Admin
+const updateOrderToDelivered = expressAsyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id)
+
+  if (order) {
+    order.isDelivered = true
+    order.deliveredAt = Date.now()
+
+    const updatedOrder = await order.save()
+
+    res.json(updatedOrder)
+  } else {
+    res.status(404)
+    throw new Error("Order not found")
+  }
+})
+
+// @desc    Get logged in user orders
+// @route   GET /api/orders/myorders
+// @access  Private
+const getMyOrders = expressAsyncHandler(async (req, res) => {
+  const orders = await Order.find({ user: req.user._id })
+  res.json(orders)
+})
+
+// @desc    Get all orders
+// @route   GET /api/orders
+// @access  Private/Admin
+const getOrders = expressAsyncHandler(async (req, res) => {
+  const orders = await Order.find({}).populate("user", "id name")
+  res.json(orders)
+})
+
+export { addOrderItems, getOrderById, updateOrderToPaid, updateOrderToDelivered, getMyOrders, getOrders }
+

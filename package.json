@@ -1,52 +1,35 @@
 {
-  "name": "port_backend",
+  "name": "ecommerce-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for E-Commerce application",
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon --exec babel-node server.js"
+    "start": "node server.js",
+    "server": "nodemon server.js",
+    "data:import": "node seeder.js",
+    "data:destroy": "node seeder.js -d"
   },
-  "engines": {
-    "node": ">=14.17.0"
-  },
-  "keywords": [],
-  "author": "elisa",
-  "license": "ISC",
+  "keywords": [
+    "ecommerce",
+    "mern",
+    "mongodb",
+    "express",
+    "node"
+  ],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
-    "@babel/node": "^7.22.19",
-    "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
-    "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "ejs": "^3.1.9",
-    "express": "^4.19.2",
-    "express-session": "^1.18.0",
-    "fuzzy-search": "^3.2.1",
-    "i": "^0.3.7",
-    "joi": "^17.13.3",
-    "js-yaml": "^4.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.1.0",
-    "mongoose": "^8.12.1",
-    "multer": "^1.4.5-lts.1",
-    "multer-storage-cloudinary": "^4.0.0",
-    "node-cron": "^3.0.3",
-    "nodemailer": "^6.10.0",
-    "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "twilio": "^4.20.0",
-    "uuid": "^10.0.0"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.23.3",
-    "@babel/preset-env": "^7.23.3",
-    "cors": "^2.8.5",
-    "eslint": "^9.22.0",
-    "nodemon": "^3.1.9"
+    "@babel/preset-react": "^7.26.3",
+    "nodemon": "^2.0.22"
   }
 }
